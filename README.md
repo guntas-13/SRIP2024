@@ -116,3 +116,17 @@ Now clearly all the terms are within our reach. To get the KL divergence, we mak
 $$ Q_{\theta}(z | X) \sim \mathcal{N}(\boldsymbol{\mu_z}(X), \Sigma_z(X)) $$
 
 $$ P(z) \sim \mathcal{N}(\mathbf{0}, I) $$
+
+Now, in order for back propogation algorithm to work, we introduce the continuity in the sampling of $z$ by moving the sampling process to an input layer this is done first by sampling from a Standard Gaussian $\epsilon \sim \mathcal{N}(0, I)$ and then obtaing $z$ with the required $\boldsymbol{\mu_z}(X), \Sigma_z(X)$
+
+$$ z = \boldsymbol{\mu_z}(X) + \Sigma_z(X) \times \epsilon $$
+
+Hence, the randomness has been shifted to $\epsilon$ and not the $X$ or the parameters of the model.
+
+<p align="center">
+<img src="./Media/FinalVAE.png" style="width:40%; border:0;">
+</p>
+
+### Generation Part
+After the model parameters are learned we **remove** the **encoder** and feed a $z \sim \mathcal{N}(0, I)$ to the decoder. The decoder will then predict $f_{\phi}(z)$ and we can draw an $X \sim \mathcal{N}(f_{\phi}(z), I)$.
+
