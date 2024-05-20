@@ -40,6 +40,10 @@ $$ P(z | X) = \frac{P(X | z) \cdot P(z)}{P(X)} $$
 
 But since $P(X) = \int P(X | z) \cdot P(z) dz = \int \int \dots \int P(X | z_1, z_2, \dots z_n) \cdot P(z_1, z_2, \dots z_n) dz_1 \cdot dz_2 \dots dz_n$ is **intractable**.
 
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/VAE.png" style="width:40%; border:0;">
+</p>
+
 Hence instead, we assume the posterior distribution $P(z | X)$ as $Q_{\theta}(z | X)$. Further assume that $Q_{\theta}(z | X)$ is a **Gaussian** whose parameters are determined by our neural network $\to$ **Encoder**.
 
 $$ \boldsymbol{\mu}, \Sigma = g_{\theta}(X) $$
@@ -92,8 +96,6 @@ since
 \end{equation}
 ```
 
-and
-
 ```math
 \begin{equation}
 \color{blue}{\mathbb{E}_Q \left[ \log (P(X | z)) \right] - D_{KL} \left(Q_{\theta}(z | X) \parallel P(z) \right)} \le \log(P(X))
@@ -104,7 +106,7 @@ and
 
 ```math
 \begin{equation}
-\mathcal{L}(\theta, \phi) = \max_{\theta, \phi} \left\{ \mathbb{E}_Q \left[ \log (P_{\phi}(X | z)) \right] - D_{KL} \left(Q_{\theta}(z | X) \parallel P(z) \right) \right \}
+\color{green}{\mathcal{L}(\theta, \phi) = \max_{\theta, \phi} \left\{ \mathbb{E}_Q \left[ \log (P_{\phi}(X | z)) \right] - D_{KL} \left(Q_{\theta}(z | X) \parallel P(z) \right) \right \}}
 \end{equation}
 ```
 
