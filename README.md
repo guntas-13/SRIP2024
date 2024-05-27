@@ -12,8 +12,14 @@
 
 <h1 align = "center"> Interpolation in the Latent Space </h1>
 
+```math
+\begin{equation}
+\textbf{w}^* = \lambda \textbf{a} + (1 - \lambda) \textbf{b}
+\end{equation}
+```
+
 <p align="center">
-<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Inter1.png" style="border:0;">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Inter1.png" style="width:40%; border:0;">
 </p>
 
 <p align="center">
@@ -46,7 +52,11 @@ $$ D\_{KL}(p \parallel q) = \frac{1}{2} [ \boldsymbol{\mu_p}^T \boldsymbol{\mu_p
 
 <h1 align = "center"> Generative Adversarial Network </h1>
 
-$$ \min*{\phi} \max*{\theta} V(G, D) = \underset{\textbf{x} \sim p*{\text{data}}}{\mathbb{E}} [\log(D*{\theta}(\textbf{x}))] + \underset{\textbf{z} \sim p*z(\textbf{z})}{\mathbb{E}} [1 - \log(D*{\theta}(G\_{\phi}(\textbf{z})))] $$
+```math
+\begin{equation}
+\min_{\phi} \max_{\theta} V(G, D) = \underset{\textbf{x} \sim p{\text{data}}}{\mathbb{E}} [\log(D_{\theta}(\textbf{x}))] + \underset{\textbf{z} \sim p_z(\textbf{z})}{\mathbb{E}} [1 - \log(D_{\theta}(G_{\phi}(\textbf{z})))]
+\end{equation}
+```
 
 <h1 align = "center">Variational AutoEncoders</h1>
 
