@@ -1,5 +1,8 @@
 <h1 align = "center"> DCGAN MNIST </h1>
-![](https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_MNIST.gif)
+
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_MNIST.gif" style="border:0;">
+</p>
 
 <h1 align = "center"> Kullback-Leibler Divergence </h1>
 
