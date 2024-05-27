@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Inter5.png" style="border:0;">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Inter5.png" style="width:40%;border:0;">
 </p>
 
 <p align="center">
