@@ -4,6 +4,12 @@
 <img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_MNIST.gif" style="border:0;">
 </p>
 
+<h1 align = "center"> DCGAN CelebA </h1>
+
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_CelebA.gif" style="border:0;">
+</p>
+
 <h1 align = "center"> Kullback-Leibler Divergence </h1>
 
 ### KL Divergence of Two Distributions of Continuous Random Variable
