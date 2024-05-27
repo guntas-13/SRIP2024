@@ -1,8 +1,11 @@
+<h1 align = "center"> DCGAN MNIST </h1>
+![](https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_MNIST.gif)
+
 <h1 align = "center"> Kullback-Leibler Divergence </h1>
 
 ### KL Divergence of Two Distributions of Continuous Random Variable
 
-$$ D_{KL}(p \parallel q) = \underset{x \sim p(x)}{\int} p(x) \log \frac{p(x)}{q(x)} $$
+$$ D\_{KL}(p \parallel q) = \underset{x \sim p(x)}{\int} p(x) \log \frac{p(x)}{q(x)} $$
 
 ### KL Divergence of Two Gaussians
 
@@ -14,23 +17,22 @@ Let $p$ and $q$ be two Normal Distributions denoted as $\mathcal{N}(\boldsymbol{
 
 Then the KL Divergence between these two:
 
-$$ D_{KL}(p \parallel q) = \mathbb{E}\_p[ \log(p) - \log(q)] $$
+$$ D\_{KL}(p \parallel q) = \mathbb{E}\_p[ \log(p) - \log(q)] $$
 
-$$ D_{KL}(p \parallel q) = \frac{1}{2} [ \log \frac{| \Sigma_q |}{| \Sigma_p |} - k + (\boldsymbol{\mu_p} - \boldsymbol{\mu_q})^T \Sigma_q^{-1} (\boldsymbol{\mu_p} - \boldsymbol{\mu_q}) + tr \{ \Sigma_q^{-1} \Sigma_p \}] $$
+$$ D\_{KL}(p \parallel q) = \frac{1}{2} [ \log \frac{| \Sigma_q |}{| \Sigma_p |} - k + (\boldsymbol{\mu_p} - \boldsymbol{\mu_q})^T \Sigma_q^{-1} (\boldsymbol{\mu_p} - \boldsymbol{\mu_q}) + tr \{ \Sigma_q^{-1} \Sigma_p \}] $$
 
 In the scenario when $q$ is $\mathcal{N}(0, I)$, we get
 
-$$ D_{KL}(p \parallel q) = \frac{1}{2} [ \boldsymbol{\mu_p}^T \boldsymbol{\mu_p} + tr \{ \Sigma_p \} - k - \log |\Sigma_p| ] $$
-
+$$ D\_{KL}(p \parallel q) = \frac{1}{2} [ \boldsymbol{\mu_p}^T \boldsymbol{\mu_p} + tr \{ \Sigma_p \} - k - \log |\Sigma_p| ] $$
 
 <h1 align = "center"> Generative Adversarial Network </h1>
 
-$$ \min_{\phi} \max_{\theta} V(G, D) = \underset{\textbf{x} \sim p_{\text{data}}}{\mathbb{E}} [\log(D_{\theta}(\textbf{x}))] + \underset{\textbf{z} \sim p_z(\textbf{z})}{\mathbb{E}} [1 - \log(D_{\theta}(G_{\phi}(\textbf{z})))] $$
-
+$$ \min*{\phi} \max*{\theta} V(G, D) = \underset{\textbf{x} \sim p*{\text{data}}}{\mathbb{E}} [\log(D*{\theta}(\textbf{x}))] + \underset{\textbf{z} \sim p*z(\textbf{z})}{\mathbb{E}} [1 - \log(D*{\theta}(G\_{\phi}(\textbf{z})))] $$
 
 <h1 align = "center">Variational AutoEncoders</h1>
 
 We wish to achieve two goals:
+
 1. **Learning Abstraction** $\to$ A hidden representation given the input $P(z | X)$ - this is achived by the **Encoder** $Q_{\theta}(z | X)$.
 2. **Generation** $\to$ given some hidden representation using the **Decoder** $P_{\phi}(X | z)$.
 
@@ -46,11 +48,11 @@ But since $P(X) = \int P(X | z) \cdot P(z) dz = \int \int \dots \int P(X | z_1, 
 
 Hence instead, we assume the posterior distribution $P(z | X)$ as $Q_{\theta}(z | X)$. Further assume that $Q_{\theta}(z | X)$ is a **Gaussian** whose parameters are determined by our neural network $\to$ **Encoder**.
 
-$$ \boldsymbol{\mu}, \Sigma = g_{\theta}(X) $$
+$$ \boldsymbol{\mu}, \Sigma = g\_{\theta}(X) $$
 
-Since 
+Since
 
-$$ D_{KL} (Q_{\theta}(z | X) \parallel P(z | X) ) = \int Q_{\theta}(z | X) \log \frac{Q_{\theta}(z | X)}{P(z | X)} \cdot dz $$
+$$ D*{KL} (Q*{\theta}(z | X) \parallel P(z | X) ) = \int Q*{\theta}(z | X) \log \frac{Q*{\theta}(z | X)}{P(z | X)} \cdot dz $$
 
 ```math
 \begin{equation}
@@ -59,7 +61,7 @@ $$ D_{KL} (Q_{\theta}(z | X) \parallel P(z | X) ) = \int Q_{\theta}(z | X) \log 
 ```
 
 ```math
-\begin{equation} 
+\begin{equation}
 = \mathbb{E}_Q \left[ \log(Q_{\theta}(z | X)) - \log \left( \frac{P(X | z) \cdot P(z)}{P(X)} \right) \right]
 \end{equation}
 ```
@@ -70,8 +72,7 @@ $$ D_{KL} (Q_{\theta}(z | X) \parallel P(z | X) ) = \int Q_{\theta}(z | X) \log 
 \end{equation}
 ```
 
-
-Also since 
+Also since
 
 ```math
 \begin{equation}
@@ -79,20 +80,19 @@ Also since
 \end{equation}
 ```
 
- so, the finally rearranging we may write
+so, the finally rearranging we may write
 
-
- ```math
+```math
 \begin{equation}
 \log(P(X)) = \color{red}{D_{KL} \left(Q_{\theta}(z | X) \parallel P(z | X) \right)} + \color{blue}{\mathbb{E}_Q \left[ \log (P(X | z)) \right] - D_{KL} \left(Q_{\theta}(z | X) \parallel P(z) \right)}
 \end{equation}
 ```
 
-
 since
+
 ```math
 \begin{equation}
-\color{red}{D_{KL} \left(Q_{\theta}(z | X) \parallel P(z | X) \right) \ge 0} 
+\color{red}{D_{KL} \left(Q_{\theta}(z | X) \parallel P(z | X) \right) \ge 0}
 \end{equation}
 ```
 
@@ -102,7 +102,7 @@ since
 \end{equation}
 ```
 
- And since the final task is maximising the log-likelihood of $P(X)$, hence it is equivalent to maximizing the $\color{blue}{\text{Blue Term}}$. So, the final objective is
+And since the final task is maximising the log-likelihood of $P(X)$, hence it is equivalent to maximizing the $\color{blue}{\text{Blue Term}}$. So, the final objective is
 
 ```math
 \begin{equation}
@@ -110,10 +110,9 @@ since
 \end{equation}
 ```
 
-
 Now clearly all the terms are within our reach. To get the KL divergence, we make a forward pass through the **Encoder** to get $Q_{\theta}(z | X)$ and we know $P(z)$
 
-$$ Q_{\theta}(z | X) \sim \mathcal{N}(\boldsymbol{\mu_z}(X), \Sigma_z(X)) $$
+$$ Q\_{\theta}(z | X) \sim \mathcal{N}(\boldsymbol{\mu_z}(X), \Sigma_z(X)) $$
 
 $$ P(z) \sim \mathcal{N}(\mathbf{0}, I) $$
 
@@ -128,5 +127,5 @@ Hence, the randomness has been shifted to $\epsilon$ and not the $X$ or the para
 </p>
 
 ### Generation Part
-After the model parameters are learned we **remove** the **encoder** and feed a $z \sim \mathcal{N}(0, I)$ to the decoder. The decoder will then predict $f_{\phi}(z)$ and we can draw an $X \sim \mathcal{N}(f_{\phi}(z), I)$.
 
+After the model parameters are learned we **remove** the **encoder** and feed a $z \sim \mathcal{N}(0, I)$ to the decoder. The decoder will then predict $f_{\phi}(z)$ and we can draw an $X \sim \mathcal{N}(f_{\phi}(z), I)$.
