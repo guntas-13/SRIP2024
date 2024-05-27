@@ -10,6 +10,10 @@
 <img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_CelebA.gif" style="border:0;">
 </p>
 
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_Celeb.png" style="border:0;">
+</p>
+
 <h1 align = "center"> Interpolation in the Latent Space </h1>
 
 <p align="center">
@@ -18,6 +22,14 @@
 
 <p align="center">
 <img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/DCGAN_Interpolation.gif" style="border:0;">
+</p>
+
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Inter5.png" style="border:0;">
+</p>
+
+<p align="center">
+<img src="https://github.com/guntas-13/SRIP2024/blob/master/Media/Interpolation.gif" style="border:0;">
 </p>
 
 <h1 align = "center"> Kullback-Leibler Divergence </h1>
