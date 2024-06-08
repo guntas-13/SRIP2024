@@ -1,5 +1,6 @@
 # Denoising Diffusion Probabilistic Models
-_(Posted Part I: 7 Jun 2024)_
+_(Posted Part I: 7 Jun 2024)_ <br>
+_(Posted Part II: 8 Jun 2024)_ <br>
 _Check Blogs over at [Blog Page](https://guntas-13.github.io/Blog/)_
 
 As seen in the case of [Variational Autoencoders](https://guntas-13.github.io/Blog/posts/Generative/Maths.html), it all boils down to learning the probability distributions - $p(\textbf{z} | \textbf{x})$ the posterior abstraction of obtaining a hidden representation $\textbf{z}$ given some input image $\textbf{x}$ and the likelihood $p(\textbf{x} | \textbf{z})$ of generating the image samples given some hidden representation $\textbf{z}$.
@@ -161,7 +162,232 @@ With $`\bar{\alpha_t} = \prod^t \alpha_i`$, we finally get
 
 ## The Crucial Reverse Diffusion Process
 
-To be continued.....
+If we can reverse the above process and sample from $`q(\textbf{x}_{t - 1} | \textbf{x}_t)`$, we will be able to recreate the true sample from a Gaussian noise input, $`\textbf{x}_T \sim \mathcal{N}(\textbf{0}, \mathbb{I})`$ . Note that if $`\beta_t`$ is small enough, $`q(\textbf{x}_{t - 1} | \textbf{x}_t)`$ will also be Gaussian. Unfortunately, we cannot easily estimate $`q(\textbf{x}_{t - 1} | \textbf{x}_t)`$ because it needs to use the entire dataset and therefore we need to learn a model $`p_{\theta}`$ to approximate these conditional probabilities in order to run the reverse diffusion process. The actual reverse distribution
+
+```math
+\begin{equation}
+q(\textbf{x}_{t - 1} | \textbf{x}_t) = \mathcal{N}(\textbf{x}_{t - 1}; \boldsymbol{\mu}_q, \mathbf{\Sigma}_q)
+\end{equation}
+```
+
+And the approximated distribution can be represented as
+
+```math
+\begin{align}
+p_{\theta}(\textbf{x}_{0 : T}) = p(\textbf{x}_T) \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t) && p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t) = \mathcal{N}(\textbf{x}_{t - 1}; \boldsymbol{\mu}_{\theta}(\textbf{x}_t, t), \mathbf{\Sigma}_{\theta}(\textbf{x}_t, t))
+\end{align}
+```
+
+Before moving onto defining the objective to find the approximate $`p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)`$, its noteworthy to understand the actual reverse process distribution $`q(\textbf{x}_{t - 1} | \textbf{x}_t)`$. As stated by the DDPM paper, the reverse conditional distribution is tractable when condition on $`\textbf{x}_0`$ and since this a Markov Process, we can safely introduce this $`\textbf{x}_0`$ in the joint conditional part and then we may expand it by **Bayes' Rule**
+
+```math
+\begin{equation}
+q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) = \frac{q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0) \cdot q(\textbf{x}_{t - 1} | \textbf{x}_0)}{q(\textbf{x}_t | \textbf{x}_0)}
+\end{equation}
+```
+
+Notice that all of these are forward processes, and using $`\mathcal{N}(\textbf{x}; \boldsymbol{\mu}, \boldsymbol{\sigma}^2) \propto \text{exp}(-\frac{1}{2} \frac{(\textbf{x} - \boldsymbol{\mu})^2}{\boldsymbol{\sigma}^2})`$
+
+```math
+\begin{equation}
+q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0) = q(\textbf{x}_t | \textbf{x}_{t - 1}) = \mathcal{N}(\textbf{x}_t; \sqrt{\alpha_t}\textbf{x}_{t - 1}, (1 - \alpha_t) \mathbb{I}) \propto \text{exp} \left( -\frac{1}{2} \frac{(\textbf{x}_t - \sqrt{\alpha_t}\textbf{x}_{t - 1})^2}{(1 - \alpha_t)} \right)
+\end{equation}
+```
+
+```math
+\begin{equation}
+q(\textbf{x}_{t - 1} | \textbf{x}_0) = \mathcal{N}(\textbf{x}_{t - 1}; \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0, (1 - \bar{\alpha}_{t - 1}) \mathbb{I}) \propto\text{exp} \left( -\frac{1}{2} \frac{(\textbf{x}_{t - 1} - \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0)^2}{(1 - \bar{\alpha}_{t - 1})} \right)
+\end{equation}
+```
+
+```math
+\begin{equation}
+q(\textbf{x}_t | \textbf{x}_0) = \mathcal{N}(\textbf{x}_t; \sqrt{\bar{\alpha}_t}\textbf{x}_0, (1 - \bar{\alpha}_t) \mathbb{I}) \propto\text{exp} \left( -\frac{1}{2} \frac{(\textbf{x}_t - \sqrt{\bar{\alpha}_t}\textbf{x}_0)^2}{(1 - \bar{\alpha}_t)} \right)
+\end{equation}
+```
+
+Hence, we may combine all these to get a single Gaussian for $`q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)`$ as
+
+
+```math
+\begin{align}
+q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) &\propto \textbf{exp} \left(-\frac{1}{2} \left( \frac{(\textbf{x}_t - \sqrt{\alpha_t}\textbf{x}_{t - 1})^2}{(1 - \alpha_t)} + \frac{(\textbf{x}_{t - 1} - \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0)^2}{(1 - \bar{\alpha}_{t - 1})} + \frac{(\textbf{x}_t - \sqrt{\bar{\alpha}_t}\textbf{x}_0)^2}{(1 - \bar{\alpha}_t)} \right) \right) \\
+&= \textbf{exp} \left(-\frac{1}{2} \left( \frac{\textbf{x}_t^2 - 2 \sqrt{\alpha_t} \textbf{x}_t \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ \alpha_t} \color{green}{\textbf{x}^2_{t - 1}}}{(1 - \alpha_t)} + \frac{\bar{\alpha}_{t - 1}\textbf{x}_0^2 - \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0 \color{blue}{\textbf{x}_{t - 1}} \color{black}{+} \color{green}{\textbf{x}_{t - 1}^2}}{(1 - \bar{\alpha}_{t - 1})} + \frac{(\textbf{x}_t - \sqrt{\bar{\alpha}_t}\textbf{x}_0)^2}{(1 - \bar{\alpha}_t)} \right) \right) \\
+&= \textbf{exp} \left(-\frac{1}{2} \left( \left( \frac{\alpha_t}{1 - \alpha_t} + \frac{1}{1 - \bar{\alpha}_{t - 1}} \right) \color{green}{\textbf{x}^2_{t - 1}} \color{black}{-2 \left( \frac{\sqrt{\alpha_t} \textbf{x}_t}{1 - \alpha_t} + \frac{\sqrt{\bar{\alpha}_{t - 1}} \textbf{x}_0}{1 - \bar{\alpha}_{t - 1}} \right)} \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ F(\textbf{x}_t, \textbf{x}_0)} \right) \right) \\
+&\propto \textbf{exp} \left(-\frac{1}{2 \boldsymbol{\sigma}^2} \left( \color{green}{\textbf{x}^2_{t - 1}} \color{black}{-2 \boldsymbol{\mu}} \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ \boldsymbol{\mu}^2} \right) \right) \\
+&\propto \textbf{exp} \left( -\frac{1}{2 \boldsymbol{\sigma}^2} \left( \textbf{x}_{t - 1} - \boldsymbol{\mu} \right)^2 \right)
+\end{align}
+```
+
+where the variance can be written as
+
+```math
+\begin{align}
+\boldsymbol{\sigma}^2 &= 1 / \left( \frac{\alpha_t}{1 - \alpha_t} + \frac{1}{1 - \bar{\alpha}_{t - 1}} \right) \\
+&= \frac{(1 - \alpha_t) \cdot (1 - \bar{\alpha}_{t - 1})}{(1 - \bar{\alpha}_t)}
+\end{align}
+```
+
+and the mean as the weighted mean of $`\textbf{x}_t`$ and $`\textbf{x}_0`$ be written as
+
+```math
+\begin{align}
+\boldsymbol{\mu} &= \frac{(1 - \alpha_t) \cdot (1 - \bar{\alpha}_{t - 1})}{(1 - \bar{\alpha}_t)} \left( \frac{\sqrt{\alpha_t}}{1 - \alpha_t} \textbf{x}_t + \frac{\sqrt{\bar{\alpha}_{t - 1}}}{1 - \bar{\alpha}_{t - 1}}\textbf{x}_0 \right) \\
+&= \frac{(1 - \bar{\alpha}_{t - 1}) \sqrt{\alpha_t}}{1 - \bar{\alpha}_t} \textbf{x}_t + \frac{(1 - \alpha_t)\sqrt{\bar{\alpha}_{t - 1}}}{1 - \bar{\alpha}_t}\textbf{x}_0 \\
+&= \frac{(1 - \bar{\alpha}_{t - 1}) \sqrt{\alpha_t}}{1 - \bar{\alpha}_t} \textbf{x}_t + \frac{(1 - \alpha_t)\sqrt{\bar{\alpha}_{t - 1}}}{1 - \bar{\alpha}_t} \left( \frac{1}{\sqrt{\bar{\alpha}_t}} (\textbf{x}_t - \sqrt{1 - \bar{\alpha}_t} \boldsymbol{\epsilon}_t) \right) \\
+& (\because \textbf{x}_t = \sqrt{\bar{\alpha_t}} \textbf{x}_0 + (\sqrt{1 - \bar{\alpha_t}}) \boldsymbol{\epsilon}_t ) \\
+&= \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \right)
+\end{align}
+```
+
+Finally we have the original reverse distribution $`q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)`$ as 
+
+```math
+\begin{equation}
+\color{MidnightBlue}{\boxed{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) = q(\textbf{x}_{t - 1} | \textbf{x}_t) = \mathcal{N}(\textbf{x}_{t - 1}; \boldsymbol{\mu}_q(\textbf{x}_0, \textbf{x}_t), \mathbf{\Sigma}_q(t))}}
+\end{equation}
+```
+
+```math
+\begin{equation}
+\color{RubineRed}{\boxed{\mathbf{\Sigma}_q(t) = \frac{(1 - \alpha_t) \cdot (1 - \bar{\alpha}_{t - 1})}{(1 - \bar{\alpha}_t)}}}
+\end{equation}
+```
+
+```math
+\begin{equation}
+\color{teal}{\boxed{\boldsymbol{\mu}_q(\textbf{x}_t, \textbf{x}_0) = \frac{(1 - \bar{\alpha}_{t - 1}) \sqrt{\alpha_t}}{1 - \bar{\alpha}_t} \textbf{x}_t + \frac{(1 - \alpha_t)\sqrt{\bar{\alpha}_{t - 1}}}{1 - \bar{\alpha}_t}\textbf{x}_0}}
+\end{equation}
+```
+
+```math
+\begin{equation}
+\color{teal}{\boxed{\boldsymbol{\mu}_q(t) = \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \right)}}
+\end{equation}
+```
+
+
+## The Loss Function
+
+### Defining the Loss Function
+As discussed before we will follow the same methodology as done in VAEs of learning the approximate reverse distribution $`p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)`$ by maximizing the expected log-likelihood of the observed data $`p_{\theta}(\textbf{x}_0)`$ for $`\textbf{x}_0 \sim q(\textbf{x}_0)`$
+
+![](https://github.com/guntas-13/SRIP2024/blob/master/Media/Jensen.png)
+<p style="text-align: center; color: #5f9ea0;">Jenson's Inequality.</p>
+
+Using Jensen's Inequality over the $`\log`$ function (convex function), hence the expectation of $`\log`$ is lesser than equal to the $`\log`$ of expectation.
+
+```math
+\begin{align}
+L &= \mathbb{E}_{\textbf{x}_0 \sim q(\textbf{x}_0)} \left[ \log p_{\theta}(\textbf{x}_0) \right] \\
+&= \mathbb{E}_{q(\textbf{x}_0)} \left[ \log \int p_{\theta}(\textbf{x}_{0 : T}) d\textbf{x}_{1 : T} \right] \\
+&= \mathbb{E}_{q(\textbf{x}_0)} \left[ \log \int q(\textbf{x}_{1 : T} | \textbf{x}_0) \times \frac{p_{\theta}(\textbf{x}_{0 : T})}{q(\textbf{x}_{1 : T} | \textbf{x}_0)} d\textbf{x}_{1 : T} \right] \\
+&= \mathbb{E}_{q(\textbf{x}_0)} \left[ \log \left ( \mathbb{E}_{q(\textbf{x}_{1 : T} | \textbf{x}_0)} \left[ \frac{p_{\theta}(\textbf{x}_{0 : T})}{q(\textbf{x}_{1 : T} | \textbf{x}_0)} \right) \right] \right] \\
+&\ge \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\color{OrangeRed}{ \log \frac{p_{\theta}(\textbf{x}_{0 : T})}{q(\textbf{x}_{1 : T} | \textbf{x}_0)}} \color{black}{} \right] \\
+\end{align}
+```
+
+Notice that both these terms are joint probability distributions with $`\color{OrangeRed}{q(\textbf{x}_{1 : T} | \textbf{x}_0)}` being the actual forward process and $`\color{OrangeRed}{p_{\theta}(\textbf{x}_{0 : T})}`$ the approximate reverse process. Expanding these terms out
+
+```math
+\begin{equation}
+p_{\theta}(\textbf{x}_{0 : T}) = p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)
+\end{equation}
+```
+
+
+Further we'll condition the forward process on $`\textbf{x}_0`$ as it would later allow us to expand terms using **Bayes' Rule** $`q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0) = \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)}`$
+
+```math
+\begin{align}
+q(\textbf{x}_{1 : T} | \textbf{x}_0) &= \prod_{t = 1}^T q(\textbf{x}_t | \textbf{x}_{t - 1}) \\
+&= q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_t | \textbf{x}_{t - 1}, \color{orange}{\textbf{x}_0} \color{black}{}) \\
+&= q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)} \\
+&= q(\textbf{x}_1 | \textbf{x}_0) \cdot \frac{q(\textbf{x}_{T - 1} | \textbf{x}_T, \textbf{x}_0)q(\textbf{x}_T | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_{T - 1}, \textbf{x}_0)q(\textbf{x}_{T - 1} | \textbf{x}_0) \cdots q(\textbf{x}_2 | \textbf{x}_3, \textbf{x}_0)q(\textbf{x}_3 | \textbf{x}_0) \cdot q(\textbf{x}_1 | \textbf{x}_2, \textbf{x}_0)q(\textbf{x}_2 | \textbf{x}_0)}{q(\textbf{x}_{T - 1} | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_0) \cdots  q(\textbf{x}_2 | \textbf{x}_0) \cdot q(\textbf{x}_1 | \textbf{x}_0)} \\
+&= \cancel{q(\textbf{x}_1 | \textbf{x}_0)} \cdot \frac{q(\textbf{x}_{T - 1} | \textbf{x}_T, \textbf{x}_0)q(\textbf{x}_T | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_{T - 1}, \textbf{x}_0)\cancel{q(\textbf{x}_{T - 1} | \textbf{x}_0)} \cdots q(\textbf{x}_2 | \textbf{x}_3, \textbf{x}_0)\cancel{q(\textbf{x}_3 | \textbf{x}_0)} \cdot q(\textbf{x}_1 | \textbf{x}_2, \textbf{x}_0)\cancel{q(\textbf{x}_2 | \textbf{x}_0)}}{\cancel{q(\textbf{x}_{T - 1} | \textbf{x}_0)} \cdot \cancel{q(\textbf{x}_{T - 2} | \textbf{x}_0)} \cdots  \cancel{q(\textbf{x}_2 | \textbf{x}_0)} \cdot \cancel{q(\textbf{x}_1 | \textbf{x}_0)}} \\
+\Aboxed{q(\textbf{x}_{1 : T} | \textbf{x}_0) &= q(\textbf{x}_T | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)}
+\end{align}
+```
+
+Substituting it all for the new lower-bound loss
+
+```math
+\begin{align}
+L_{N} &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_{0 : T})}{q(\textbf{x}_{1 : T} | \textbf{x}_0)} \right] \\
+&= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0)} \right] \\
+&= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)} } \right] \\
+&= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_T | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) } \right] \\
+&= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T)}{q(\textbf{x}_T | \textbf{x}_0)} + \log p_{\theta}(\textbf{x}_0 | \textbf{x}_1) + \sum_{t = 2}^T \log \frac{p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)} \right] \\
+&= \log p_{\theta}(\textbf{x}_0 | \textbf{x}_1) + \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[ \sum_{t = 2}^T \log \frac{p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)} \right] \\
+\Aboxed{L_N &= \sum_{t = 2}^T D_{KL} \left(p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t) \parallel q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \right) + \log p_{\theta}(\textbf{x}_0 | \textbf{x}_1)}
+\end{align}
+```
+
+### Reparametrization of the Loss Function
+
+The above loss function aims to bring the actual reverse $`q(\textbf{x}_{t - 1} | \textbf{x}_t)`$ and approximated reverse distributions $`p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)`$ as close as possible by the means of the $`T - 1`$ $`KL`$ Divergence terms.  Since we approximate the reverse process using a neural network, the Divergence terms would imply that we want their means to be as close as possible. For two Gaussians with same covariance matrices $`p = \mathcal{N}(\textbf{x}; \boldsymbol{\mu}_1, \mathbf{\Sigma})`$ and $`q = \mathcal{N}(\textbf{x}; \boldsymbol{\mu}_2, \mathbf{\Sigma})`$, their $`D_{KL}(p \parallel q) = \frac{1}{2 \lVert \mathbf{\Sigma} \rVert^2_2} \lVert \boldsymbol{\mu}_1 - \boldsymbol{\mu}_2 \rVert^2`$
+
+```math
+\begin{equation}
+p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t) = \mathcal{N}(\textbf{x}_{t - 1}; \boldsymbol{\mu}_{\theta}(\textbf{x}_t, t), \mathbf{\Sigma}_{\theta}(\textbf{x}_t, t))
+\end{equation}
+```
+
+```math
+\begin{equation}
+q(\textbf{x}_{t - 1} | \textbf{x}_t) = \mathcal{N}(\textbf{x}_{t - 1}; \left( \frac{(1 - \bar{\alpha}_{t - 1}) \sqrt{\alpha_t}}{1 - \bar{\alpha}_t} \textbf{x}_t + \frac{(1 - \alpha_t)\sqrt{\bar{\alpha}_{t - 1}}}{1 - \bar{\alpha}_t}\textbf{x}_0 \right), \frac{(1 - \alpha_t) \cdot (1 - \bar{\alpha}_{t - 1})}{(1 - \bar{\alpha}_t)} \mathbb{I})
+\end{equation}
+```
+
+As stated in the paper, take both their covariances to be the same, hence each term of the loss function $`L_t`$ can be written as
+
+```math
+\begin{equation}
+\color{BlueViolet}{\boxed{L_t = \mathbb{E}_{\textbf{x}_0, \boldsymbol{\epsilon}} \left[ \frac{1}{2 \lVert \mathbf{\Sigma}_{\theta}(\textbf{x}_t, t) \rVert^2_2} \lVert \boldsymbol{\mu}_{\theta}(\textbf{x}_t, t) - \boldsymbol{\mu}_t(\textbf{x}_t, \textbf{x}_0) \rVert^2 \right] }}
+\end{equation}
+```
+
+
+The authors, however, define this in terms of the noise prediction. Since $`\boldsymbol{\mu}_q(\textbf{x}_t, t) = \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \right)`$, hence for the approximate reverse process distribution, we may write
+
+```math
+\begin{equation}
+\boldsymbol{\mu}_{\theta}(\textbf{x}_t, t) = \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_{\theta}(\textbf{x}_t, t) \right)
+\end{equation}
+```
+
+Hence the objective can be re-written as
+
+```math
+\begin{align}
+L_t &= \mathbb{E}_{\textbf{x}_0, \boldsymbol{\epsilon}} \left[ \frac{1}{2 \lVert \mathbf{\Sigma}_{\theta} \rVert^2_2} \lVert \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_{\theta}(\textbf{x}_t, t) \right) - \frac{1}{\sqrt{\alpha_t}} \left(\textbf{x}_t - \frac{1 - \alpha_t}{\sqrt{1 - \bar{\alpha}_t}} \boldsymbol{\epsilon}_t \right) \rVert^2 \right] \\
+&= \mathbb{E}_{\textbf{x}_0, \boldsymbol{\epsilon}} \left[ \frac{(1 - \alpha_t)^2}{2 \alpha_t (1 - \bar{\alpha}_t) \lVert \mathbf{\Sigma}_{\theta} \rVert^2_2} \lVert \boldsymbol{\epsilon}_{\theta}(\textbf{x}_t, t) - \boldsymbol{\epsilon}_t \rVert^2 \right]
+\end{align}
+```
+
+```math
+\begin{equation}
+\color{PineGreen}{\boxed{L_t = \mathbb{E}_{\textbf{x}_0, \boldsymbol{\epsilon}} \left[ \frac{(1 - \alpha_t)^2}{2 \alpha_t (1 - \bar{\alpha}_t) \lVert \mathbf{\Sigma}_{\theta} \rVert^2_2} \lVert \boldsymbol{\epsilon}_{\theta}((\sqrt{\bar{\alpha_t}}) \textbf{x}_0 + (\sqrt{1 - \bar{\alpha_t}})\boldsymbol{\epsilon}_t , t) - \boldsymbol{\epsilon}_t \rVert^2 \right]}}
+\end{equation}
+```
+
+
+Notice how beautifully it wraps down to just making the model to learn to approximate the noising $`\boldsymbol{\epsilon}_{\theta}(\textbf{x}_t, t)`$ process over any $`\textbf{x}_t`$ to the actual noise $`\boldsymbol{\epsilon}_t \sim \mathcal{N}(\textbf{0}, \mathbb{I})`$. Hence this quite so weird learning process lets us learn the denoising reverse distribution.
+
+### Modified Objective
+The authors further found that training works better by dropping off the constant term entirely, so the final objective is
+
+```math
+\begin{equation}
+\color{OrangeRed}{\boxed{L_t^{\text{Simple}} = \mathbb{E}_{t \sim [1, T], \textbf{x}_0, \boldsymbol{\epsilon}_t} \left[\lVert \boldsymbol{\epsilon}_{\theta}((\sqrt{\bar{\alpha_t}}) \textbf{x}_0 + (\sqrt{1 - \bar{\alpha_t}})\boldsymbol{\epsilon}_t , t) - \boldsymbol{\epsilon}_t \rVert^2 \right]}}
+\end{equation}
+```
+
+![](https://github.com/guntas-13/SRIP2024/blob/master/Media/DiffAlgo.png)
+<p style="text-align: center; color: #5f9ea0;">Training and Inference Algorithms.</p>
+
+Great [YouTube tutorial](https://www.youtube.com/watch?v=H45lF4sUgiE) by **ExplainingAI** helped understand the whole concept!
+
 
 
 <h1 align = "center"> DCGAN MNIST </h1>
