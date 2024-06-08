@@ -1,7 +1,7 @@
 # Denoising Diffusion Probabilistic Models
 _(Posted Part I: 7 Jun 2024)_ <br>
 _(Posted Part II: 8 Jun 2024)_ <br>
-_Check Blogs over at [Blog Page](https://guntas-13.github.io/Blog/)_
+_Apologies for some formatting issues here, so check out blogs at [Blog Page](https://guntas-13.github.io/Blog/). Each equation here has to be tweaked in some way in order to render it._
 
 As seen in the case of [Variational Autoencoders](https://guntas-13.github.io/Blog/posts/Generative/Maths.html), it all boils down to learning the probability distributions - $p(\textbf{z} | \textbf{x})$ the posterior abstraction of obtaining a hidden representation $\textbf{z}$ given some input image $\textbf{x}$ and the likelihood $p(\textbf{x} | \textbf{z})$ of generating the image samples given some hidden representation $\textbf{z}$.
 
@@ -208,11 +208,15 @@ q(\textbf{x}_t | \textbf{x}_0) = \mathcal{N}(\textbf{x}_t; \sqrt{\bar{\alpha}_t}
 
 Hence, we may combine all these to get a single Gaussian for $`q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)`$ as
 
-
 ```math
 \begin{align}
 q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) &\propto \textbf{exp} \left(-\frac{1}{2} \left( \frac{(\textbf{x}_t - \sqrt{\alpha_t}\textbf{x}_{t - 1})^2}{(1 - \alpha_t)} + \frac{(\textbf{x}_{t - 1} - \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0)^2}{(1 - \bar{\alpha}_{t - 1})} + \frac{(\textbf{x}_t - \sqrt{\bar{\alpha}_t}\textbf{x}_0)^2}{(1 - \bar{\alpha}_t)} \right) \right) \\
 &= \textbf{exp} \left(-\frac{1}{2} \left( \frac{\textbf{x}_t^2 - 2 \sqrt{\alpha_t} \textbf{x}_t \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ \alpha_t} \color{green}{\textbf{x}^2_{t - 1}}}{(1 - \alpha_t)} + \frac{\bar{\alpha}_{t - 1}\textbf{x}_0^2 - \sqrt{\bar{\alpha}_{t - 1}}\textbf{x}_0 \color{blue}{\textbf{x}_{t - 1}} \color{black}{+} \color{green}{\textbf{x}_{t - 1}^2}}{(1 - \bar{\alpha}_{t - 1})} + \frac{(\textbf{x}_t - \sqrt{\bar{\alpha}_t}\textbf{x}_0)^2}{(1 - \bar{\alpha}_t)} \right) \right) \\
+\end{align}
+```
+
+```math
+\begin{align}
 &= \textbf{exp} \left(-\frac{1}{2} \left( \left( \frac{\alpha_t}{1 - \alpha_t} + \frac{1}{1 - \bar{\alpha}_{t - 1}} \right) \color{green}{\textbf{x}^2_{t - 1}} \color{black}{-2 \left( \frac{\sqrt{\alpha_t} \textbf{x}_t}{1 - \alpha_t} + \frac{\sqrt{\bar{\alpha}_{t - 1}} \textbf{x}_0}{1 - \bar{\alpha}_{t - 1}} \right)} \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ F(\textbf{x}_t, \textbf{x}_0)} \right) \right) \\
 &\propto \textbf{exp} \left(-\frac{1}{2 \boldsymbol{\sigma}^2} \left( \color{green}{\textbf{x}^2_{t - 1}} \color{black}{-2 \boldsymbol{\mu}} \color{blue}{\textbf{x}_{t - 1}} \color{black}{+ \boldsymbol{\mu}^2} \right) \right) \\
 &\propto \textbf{exp} \left( -\frac{1}{2 \boldsymbol{\sigma}^2} \left( \textbf{x}_{t - 1} - \boldsymbol{\mu} \right)^2 \right)
@@ -277,6 +281,7 @@ As discussed before we will follow the same methodology as done in VAEs of learn
 
 Using Jensen's Inequality over the $`\log`$ function (convex function), hence the expectation of $`\log`$ is lesser than equal to the $`\log`$ of expectation.
 
+
 ```math
 \begin{align}
 L &= \mathbb{E}_{\textbf{x}_0 \sim q(\textbf{x}_0)} \left[ \log p_{\theta}(\textbf{x}_0) \right] \\
@@ -287,7 +292,7 @@ L &= \mathbb{E}_{\textbf{x}_0 \sim q(\textbf{x}_0)} \left[ \log p_{\theta}(\text
 \end{align}
 ```
 
-Notice that both these terms are joint probability distributions with $`\color{OrangeRed}{q(\textbf{x}_{1 : T} | \textbf{x}_0)}` being the actual forward process and $`\color{OrangeRed}{p_{\theta}(\textbf{x}_{0 : T})}`$ the approximate reverse process. Expanding these terms out
+Notice that both these terms are joint probability distributions with $`\color{OrangeRed}{q(\textbf{x}_{1 : T} | \textbf{x}_0)}`$ being the actual forward process and $`\color{OrangeRed}{p_{\theta}(\textbf{x}_{0 : T})}`$ the approximate reverse process. Expanding these terms out
 
 ```math
 \begin{equation}
@@ -298,11 +303,17 @@ p_{\theta}(\textbf{x}_{0 : T}) = p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T 
 
 Further we'll condition the forward process on $`\textbf{x}_0`$ as it would later allow us to expand terms using **Bayes' Rule** $`q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0) = \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)}`$
 
+
 ```math
 \begin{align}
 q(\textbf{x}_{1 : T} | \textbf{x}_0) &= \prod_{t = 1}^T q(\textbf{x}_t | \textbf{x}_{t - 1}) \\
 &= q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_t | \textbf{x}_{t - 1}, \color{orange}{\textbf{x}_0} \color{black}{}) \\
-&= q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)} \\
+&= q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)}
+\end{align}
+```
+
+```math
+\begin{align}
 &= q(\textbf{x}_1 | \textbf{x}_0) \cdot \frac{q(\textbf{x}_{T - 1} | \textbf{x}_T, \textbf{x}_0)q(\textbf{x}_T | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_{T - 1}, \textbf{x}_0)q(\textbf{x}_{T - 1} | \textbf{x}_0) \cdots q(\textbf{x}_2 | \textbf{x}_3, \textbf{x}_0)q(\textbf{x}_3 | \textbf{x}_0) \cdot q(\textbf{x}_1 | \textbf{x}_2, \textbf{x}_0)q(\textbf{x}_2 | \textbf{x}_0)}{q(\textbf{x}_{T - 1} | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_0) \cdots  q(\textbf{x}_2 | \textbf{x}_0) \cdot q(\textbf{x}_1 | \textbf{x}_0)} \\
 &= \cancel{q(\textbf{x}_1 | \textbf{x}_0)} \cdot \frac{q(\textbf{x}_{T - 1} | \textbf{x}_T, \textbf{x}_0)q(\textbf{x}_T | \textbf{x}_0) \cdot q(\textbf{x}_{T - 2} | \textbf{x}_{T - 1}, \textbf{x}_0)\cancel{q(\textbf{x}_{T - 1} | \textbf{x}_0)} \cdots q(\textbf{x}_2 | \textbf{x}_3, \textbf{x}_0)\cancel{q(\textbf{x}_3 | \textbf{x}_0)} \cdot q(\textbf{x}_1 | \textbf{x}_2, \textbf{x}_0)\cancel{q(\textbf{x}_2 | \textbf{x}_0)}}{\cancel{q(\textbf{x}_{T - 1} | \textbf{x}_0)} \cdot \cancel{q(\textbf{x}_{T - 2} | \textbf{x}_0)} \cdots  \cancel{q(\textbf{x}_2 | \textbf{x}_0)} \cdot \cancel{q(\textbf{x}_1 | \textbf{x}_0)}} \\
 \Aboxed{q(\textbf{x}_{1 : T} | \textbf{x}_0) &= q(\textbf{x}_T | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)}
@@ -316,6 +327,11 @@ Substituting it all for the new lower-bound loss
 L_{N} &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_{0 : T})}{q(\textbf{x}_{1 : T} | \textbf{x}_0)} \right] \\
 &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_t | \textbf{x}_{t - 1}, \textbf{x}_0)} \right] \\
 &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_1 | \textbf{x}_0) \cdot \prod_{t = 2}^T \frac{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) \cdot q(\textbf{x}_t | \textbf{x}_0)}{q(\textbf{x}_{t - 1} | \textbf{x}_0)} } \right] \\
+\end{align}
+```
+
+```math
+\begin{align}
 &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T) \cdot \prod_{t = 1}^T p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_T | \textbf{x}_0) \cdot \prod_{t = 2}^T q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0) } \right] \\
 &= \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[\log \frac{p_{\theta}(\textbf{x}_T)}{q(\textbf{x}_T | \textbf{x}_0)} + \log p_{\theta}(\textbf{x}_0 | \textbf{x}_1) + \sum_{t = 2}^T \log \frac{p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)} \right] \\
 &= \log p_{\theta}(\textbf{x}_0 | \textbf{x}_1) + \mathbb{E}_{q(\textbf{x}_{0 : T})} \left[ \sum_{t = 2}^T \log \frac{p_{\theta}(\textbf{x}_{t - 1} | \textbf{x}_t)}{q(\textbf{x}_{t - 1} | \textbf{x}_t, \textbf{x}_0)} \right] \\
