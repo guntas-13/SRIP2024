@@ -1,3 +1,15 @@
+# DDPM Implementation
+## Reverse Diffusion Process over MNIST Digits
+
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_999.png" style="float: left;">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_0.png">
+</div>
+
+<div align = "center">
+<img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/out.gif">
+</div>
+
 # Denoising Diffusion Probabilistic Models
 _(Posted Part I: 7 Jun 2024)_ <br>
 _(Posted Part II: 8 Jun 2024)_ <br>
