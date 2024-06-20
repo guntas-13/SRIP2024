@@ -1,5 +1,6 @@
 # DDPM Implementation
 ## Reverse Diffusion Process over MNIST Digits
+Trained for **30 epochs** for **28 x 28** images. _(Around 1:30 hr training)_
 
 <div align = "center">
     <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_999.png" style="float: left;">
@@ -8,6 +9,18 @@
 
 <div align = "center">
 <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/out.gif">
+</div>
+
+## Reverse Diffusion Process over CelebA Faces
+Trained for **10 epochs** for **32 x 32** images. _(Around 2:30 hr training)_
+
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_999C.png" style="float: left;">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_0C.png">
+</div>
+
+<div align = "center">
+<img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/outT.gif">
 </div>
 
 # Denoising Diffusion Probabilistic Models
