@@ -1,3 +1,39 @@
+# Latent Diffusion Model (LDM) Implementation
+The idea is to allow the generation of high-resolution images using diffusion models by training them over some lower-resolution quantized/latent space rather than training over the original image space. Then allowing some autoencoder's decoder to rescale this lower-resolution quantized image to the original image resolution.
+
+## The CelebHQ Dataset
+Dataset of $30,000$ celebrity faces each of size $(256 \times 256)$.
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/CelebHQ.png" style="width: 50%;">
+</div>
+
+## AutoEncoder (VQVAE) trained
+Trained for **20 epochs** with **25 mins** per epoch _(Around 9 hr training)_.
+**UNet-based autoencoder** architecture with quantized/latent representation of size **1/8** of the original image. Reconstruction using **L2 + Perceptual + Adversarial Losses**.
+
+```math
+\begin{equation}
+\boxed{\texttt{Loss} = \texttt{L}_2 + \texttt{codebook\_loss} + 0.2 \times \texttt{commitment\_loss} + 0.5 \times \texttt{adversarial\_loss} + \texttt{lpips\_loss}}
+\end{equation}
+```
+
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/VQVAEAuto.png" style="width: 100%;">
+</div>
+
+## Reverse Diffusion Process over the Quantized Images and Upsampling to original using Decoder of VQVAE
+Trained for **100 epochs** for **8 x 8** quantized images with **4:30 mins** per epoch. _(Around 8:30 hr training)_
+
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/ldm_results/out.gif" style="width: 80%">
+</div>
+
+## Final Generated Images
+<div align = "center">
+    <img src = "https://github.com/guntas-13/SRIP2024/blob/master/Media/x0_0ldm.png" style="width: 60%;">
+</div>
+
+
 # DDPM Implementation
 ## Reverse Diffusion Process over MNIST Digits
 Trained for **30 epochs** for **28 x 28** images. _(Around 1:30 hr training)_
