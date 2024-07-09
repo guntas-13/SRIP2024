@@ -1,3 +1,7 @@
+# Final Poster
+![](https://github.com/guntas-13/SRIP2024/blob/master/Posters/LDM.png)
+![](https://github.com/guntas-13/SRIP2024/blob/master/Posters/InPainting.png)
+
 # Latent Diffusion Model (LDM) Implementation
 The idea is to allow the generation of high-resolution images using diffusion models by training them over some lower-resolution quantized/latent space rather than training over the original image space. Then allowing some autoencoder's decoder to rescale this lower-resolution quantized image to the original image resolution.
 
