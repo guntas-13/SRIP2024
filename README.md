@@ -1,3 +1,6 @@
+# Final Report
+[![](https://github.com/guntas-13/SRIP2024/blob/master/Media/Report.png)](https://drive.google.com/file/d/1bPIhQglkCa9mypoRwWZJL-fSep1M_im8/view?usp=drive_link)
+
 # Final Poster
 ![](https://github.com/guntas-13/SRIP2024/blob/master/Posters/LDM.png)
 ![](https://github.com/guntas-13/SRIP2024/blob/master/Posters/InPainting.png)
